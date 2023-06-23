@@ -26,9 +26,8 @@ import subprocess
 
 
 def get_version():
-    f = open('../../VERSION', 'r')
-    version = f.readline().strip()
-    f.close()
+    with open('../../VERSION', 'r') as f:
+        version = f.readline().strip()
     return ".".join(version[1:].split('.'))
 
 
@@ -62,7 +61,7 @@ void add_module_constants(PyObject *m)
         for constant in constants:
             assert constant.startswith('BTRFS_UTIL_')
             name = constant[len('BTRFS_UTIL_'):]
-            f.write('\tPyModule_AddIntConstant(m, "{}", {});\n'.format(name, constant))
+            f.write(f'\tPyModule_AddIntConstant(m, "{name}", {constant});\n')
         f.write("""\
 }
 """)

@@ -223,13 +223,13 @@ class TestSubvolume(BtrfsTestCase):
     def test_create_subvolume(self):
         subvol = os.path.join(self.mountpoint, 'subvol')
 
-        btrfsutil.create_subvolume(subvol + '1')
-        self.assertTrue(btrfsutil.is_subvolume(subvol + '1'))
-        btrfsutil.create_subvolume((subvol + '2').encode())
-        self.assertTrue(btrfsutil.is_subvolume(subvol + '2'))
+        btrfsutil.create_subvolume(f'{subvol}1')
+        self.assertTrue(btrfsutil.is_subvolume(f'{subvol}1'))
+        btrfsutil.create_subvolume(f'{subvol}2'.encode())
+        self.assertTrue(btrfsutil.is_subvolume(f'{subvol}2'))
         if HAVE_PATH_LIKE:
-            btrfsutil.create_subvolume(PurePath(subvol + '3'))
-            self.assertTrue(btrfsutil.is_subvolume(subvol + '3'))
+            btrfsutil.create_subvolume(PurePath(f'{subvol}3'))
+            self.assertTrue(btrfsutil.is_subvolume(f'{subvol}3'))
 
         pwd = os.getcwd()
         try:
@@ -239,11 +239,11 @@ class TestSubvolume(BtrfsTestCase):
         finally:
             os.chdir(pwd)
 
-        btrfsutil.create_subvolume(subvol + '5/')
-        self.assertTrue(btrfsutil.is_subvolume(subvol + '5'))
+        btrfsutil.create_subvolume(f'{subvol}5/')
+        self.assertTrue(btrfsutil.is_subvolume(f'{subvol}5'))
 
-        btrfsutil.create_subvolume(subvol + '6//')
-        self.assertTrue(btrfsutil.is_subvolume(subvol + '6'))
+        btrfsutil.create_subvolume(f'{subvol}6//')
+        self.assertTrue(btrfsutil.is_subvolume(f'{subvol}6'))
 
         # Test creating subvolumes under '/' in a chroot.
         pid = os.fork()
@@ -271,22 +271,22 @@ class TestSubvolume(BtrfsTestCase):
 
         for i, arg in enumerate(self.path_or_fd(subvol)):
             with self.subTest(type=type(arg)):
-                snapshots_dir = os.path.join(self.mountpoint, 'snapshots{}'.format(i))
+                snapshots_dir = os.path.join(self.mountpoint, f'snapshots{i}')
                 os.mkdir(snapshots_dir)
                 snapshot = os.path.join(snapshots_dir, 'snapshot')
 
-                btrfsutil.create_snapshot(subvol, snapshot + '1')
-                self.assertTrue(btrfsutil.is_subvolume(snapshot + '1'))
-                self.assertTrue(os.path.exists(os.path.join(snapshot + '1', 'dir')))
+                btrfsutil.create_snapshot(subvol, f'{snapshot}1')
+                self.assertTrue(btrfsutil.is_subvolume(f'{snapshot}1'))
+                self.assertTrue(os.path.exists(os.path.join(f'{snapshot}1', 'dir')))
 
-                btrfsutil.create_snapshot(subvol, (snapshot + '2').encode())
-                self.assertTrue(btrfsutil.is_subvolume(snapshot + '2'))
-                self.assertTrue(os.path.exists(os.path.join(snapshot + '2', 'dir')))
+                btrfsutil.create_snapshot(subvol, f'{snapshot}2'.encode())
+                self.assertTrue(btrfsutil.is_subvolume(f'{snapshot}2'))
+                self.assertTrue(os.path.exists(os.path.join(f'{snapshot}2', 'dir')))
 
                 if HAVE_PATH_LIKE:
-                    btrfsutil.create_snapshot(subvol, PurePath(snapshot + '3'))
-                    self.assertTrue(btrfsutil.is_subvolume(snapshot + '3'))
-                    self.assertTrue(os.path.exists(os.path.join(snapshot + '3', 'dir')))
+                    btrfsutil.create_snapshot(subvol, PurePath(f'{snapshot}3'))
+                    self.assertTrue(btrfsutil.is_subvolume(f'{snapshot}3'))
+                    self.assertTrue(os.path.exists(os.path.join(f'{snapshot}3', 'dir')))
 
         nested_subvol = os.path.join(subvol, 'nested')
         more_nested_subvol = os.path.join(nested_subvol, 'more_nested')
@@ -296,33 +296,39 @@ class TestSubvolume(BtrfsTestCase):
 
         snapshot = os.path.join(self.mountpoint, 'snapshot')
 
-        btrfsutil.create_snapshot(subvol, snapshot + '1')
+        btrfsutil.create_snapshot(subvol, f'{snapshot}1')
         # Dummy subvolume.
-        self.assertEqual(os.stat(os.path.join(snapshot + '1', 'nested')).st_ino, 2)
-        self.assertFalse(os.path.exists(os.path.join(snapshot + '1', 'nested', 'more_nested')))
+        self.assertEqual(os.stat(os.path.join(f'{snapshot}1', 'nested')).st_ino, 2)
+        self.assertFalse(
+            os.path.exists(os.path.join(f'{snapshot}1', 'nested', 'more_nested'))
+        )
 
-        btrfsutil.create_snapshot(subvol, snapshot + '2', recursive=True)
-        self.assertTrue(os.path.exists(os.path.join(snapshot + '2', 'nested/more_nested/nested_dir')))
+        btrfsutil.create_snapshot(subvol, f'{snapshot}2', recursive=True)
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(f'{snapshot}2', 'nested/more_nested/nested_dir')
+            )
+        )
 
-        btrfsutil.create_snapshot(subvol, snapshot + '3', read_only=True)
-        self.assertTrue(btrfsutil.get_subvolume_read_only(snapshot + '3'))
+        btrfsutil.create_snapshot(subvol, f'{snapshot}3', read_only=True)
+        self.assertTrue(btrfsutil.get_subvolume_read_only(f'{snapshot}3'))
 
     def test_delete_subvolume(self):
         subvol = os.path.join(self.mountpoint, 'subvol')
-        btrfsutil.create_subvolume(subvol + '1')
-        self.assertTrue(os.path.exists(subvol + '1'))
-        btrfsutil.create_subvolume(subvol + '2')
-        self.assertTrue(os.path.exists(subvol + '2'))
-        btrfsutil.create_subvolume(subvol + '3')
-        self.assertTrue(os.path.exists(subvol + '3'))
+        btrfsutil.create_subvolume(f'{subvol}1')
+        self.assertTrue(os.path.exists(f'{subvol}1'))
+        btrfsutil.create_subvolume(f'{subvol}2')
+        self.assertTrue(os.path.exists(f'{subvol}2'))
+        btrfsutil.create_subvolume(f'{subvol}3')
+        self.assertTrue(os.path.exists(f'{subvol}3'))
 
-        btrfsutil.delete_subvolume(subvol + '1')
-        self.assertFalse(os.path.exists(subvol + '1'))
-        btrfsutil.delete_subvolume((subvol + '2').encode())
-        self.assertFalse(os.path.exists(subvol + '2'))
+        btrfsutil.delete_subvolume(f'{subvol}1')
+        self.assertFalse(os.path.exists(f'{subvol}1'))
+        btrfsutil.delete_subvolume(f'{subvol}2'.encode())
+        self.assertFalse(os.path.exists(f'{subvol}2'))
         if HAVE_PATH_LIKE:
-            btrfsutil.delete_subvolume(PurePath(subvol + '3'))
-            self.assertFalse(os.path.exists(subvol + '3'))
+            btrfsutil.delete_subvolume(PurePath(f'{subvol}3'))
+            self.assertFalse(os.path.exists(f'{subvol}3'))
 
         # Test deleting subvolumes under '/' in a chroot.
         pid = os.fork()
@@ -344,21 +350,21 @@ class TestSubvolume(BtrfsTestCase):
         self.assertTrue(os.WIFEXITED(wstatus))
         self.assertEqual(os.WEXITSTATUS(wstatus), 0)
 
-        btrfsutil.create_subvolume(subvol + '5')
-        btrfsutil.create_subvolume(subvol + '5/foo')
-        btrfsutil.create_subvolume(subvol + '5/bar')
-        btrfsutil.create_subvolume(subvol + '5/bar/baz')
-        btrfsutil.create_subvolume(subvol + '5/bar/qux')
-        btrfsutil.create_subvolume(subvol + '5/quux')
+        btrfsutil.create_subvolume(f'{subvol}5')
+        btrfsutil.create_subvolume(f'{subvol}5/foo')
+        btrfsutil.create_subvolume(f'{subvol}5/bar')
+        btrfsutil.create_subvolume(f'{subvol}5/bar/baz')
+        btrfsutil.create_subvolume(f'{subvol}5/bar/qux')
+        btrfsutil.create_subvolume(f'{subvol}5/quux')
         with self.assertRaises(btrfsutil.BtrfsUtilError):
-            btrfsutil.delete_subvolume(subvol + '5')
-        btrfsutil.delete_subvolume(subvol + '5', recursive=True)
-        self.assertFalse(os.path.exists(subvol + '5'))
+            btrfsutil.delete_subvolume(f'{subvol}5')
+        btrfsutil.delete_subvolume(f'{subvol}5', recursive=True)
+        self.assertFalse(os.path.exists(f'{subvol}5'))
 
     def test_deleted_subvolumes(self):
         subvol = os.path.join(self.mountpoint, 'subvol')
-        btrfsutil.create_subvolume(subvol + '1')
-        btrfsutil.delete_subvolume(subvol + '1')
+        btrfsutil.create_subvolume(f'{subvol}1')
+        btrfsutil.delete_subvolume(f'{subvol}1')
         for arg in self.path_or_fd(self.mountpoint):
             with self.subTest(type=type(arg)):
                 self.assertEqual(btrfsutil.deleted_subvolumes(arg), [256])
@@ -512,7 +518,7 @@ class TestSubvolume(BtrfsTestCase):
     @staticmethod
     def _create_and_delete_subvolume(i):
         dir_name = f'dir{i}'
-        subvol_name = dir_name + '/subvol'
+        subvol_name = f'{dir_name}/subvol'
         while True:
             os.mkdir(dir_name)
             btrfsutil.create_subvolume(subvol_name)
@@ -523,20 +529,19 @@ class TestSubvolume(BtrfsTestCase):
         procs = []
         fd = os.open('.', os.O_RDONLY | os.O_DIRECTORY)
         try:
-            for i in range(10):
-                procs.append(
-                    multiprocessing.Process(
-                        target=self._create_and_delete_subvolume,
-                        args=(i,),
-                        daemon=True,
-                    )
+            procs.extend(
+                multiprocessing.Process(
+                    target=self._create_and_delete_subvolume,
+                    args=(i,),
+                    daemon=True,
                 )
+                for i in range(10)
+            )
             for proc in procs:
                 proc.start()
-            for i in range(1000):
+            for _ in range(1000):
                 with btrfsutil.SubvolumeIterator(fd) as it:
-                    for _ in it:
-                        pass
+                    pass
         finally:
             for proc in procs:
                 proc.terminate()

@@ -174,10 +174,7 @@ def advance_search(search):
         return False
     if search.args.min_type > search.args.max_type:
         return False
-    if search.args.min_objectid > search.args.max_objectid:
-        return False
-
-    return True
+    return search.args.min_objectid <= search.args.max_objectid
 
 # given one search_header and one file_item, print the details.  This
 # also tosses the [disk_bytenr,disk_num_bytes] into extent_hash to record
@@ -191,19 +188,13 @@ def print_one_extent(header, fi, extent_hash):
         # and we get the length of the inlined data.
         # this may or may not be compressed
         inline_len = header.len - 21
-        if fi.compression:
-            ram_bytes = fi.ram_bytes
-        else:
-            ram_bytes = inline_len
+        ram_bytes = fi.ram_bytes if fi.compression else inline_len
         print("(%Lu %Lu): ram %Lu disk 0 disk_size %Lu -- inline" % \
                (header.objectid, header.offset, ram_bytes, inline_len))
         extent_hash[-1] = inline_len
         return
 
-    if fi.disk_bytenr == 0:
-        tag = " -- hole"
-    else:
-        tag = ""
+    tag = " -- hole" if fi.disk_bytenr == 0 else ""
     print("(%Lu %Lu): ram %Lu disk %Lu disk_size %Lu%s" % (header.objectid,
            header.offset, fi.num_bytes, fi.disk_bytenr, fi.disk_num_bytes, tag))
 
@@ -251,7 +242,7 @@ def print_file_extents(filename):
         h = ctypes.addressof(header)
         p_left = args_buffer_size
 
-        for x in range(0, s.args.nr_items):
+        for _ in range(0, s.args.nr_items):
             # for each item, copy the header from the buffer into
             # our header struct.
             ctypes.memmove(h, p, header_size)
@@ -398,8 +389,8 @@ parser.add_argument('-f', '--file', action='store_const', const=1, help='get fil
 args = parser.parse_args()
 
 if args.block_group:
-    for i in args.path[0:]:
+    for i in args.path[:]:
         print_block_groups(i)
 elif args.file:
-    for f in args.path[0:]:
+    for f in args.path[:]:
         print_file_extents(f)

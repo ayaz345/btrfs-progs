@@ -46,10 +46,7 @@ class AnnoteFinder:
   """
 
   def __init__(self, axis=None):
-    if axis is None:
-      self.axis = gca()
-    else:
-      self.axis= axis
+    self.axis = gca() if axis is None else axis
     self.drawnAnnotations = {}
     self.links = []
     
@@ -63,9 +60,9 @@ class AnnoteFinder:
         self.clear()
         draw()
         return
-      clickX = event.xdata
-      clickY = event.ydata
       if (self.axis is None) or (self.axis==event.inaxes):
+        clickX = event.xdata
+        clickY = event.ydata
         self.drawAnnote(event.inaxes, clickX, clickY)
     
   def drawAnnote(self, axis, x, y):
@@ -75,12 +72,12 @@ class AnnoteFinder:
     if self.drawnAnnotations.has_key((x,y)):
       markers = self.drawnAnnotations[(x,y)]
       markers.set_visible(not markers.get_visible())
-      draw()
     else:
       t = axis.text(x,y, "(%3.2f, %3.2f)"%(x,y), bbox=dict(facecolor='red',
                     alpha=0.8))
       self.drawnAnnotations[(x,y)] = t
-      draw()
+
+    draw()
 
 def loaddata(fh,delimiter=None, converters=None):
 
@@ -108,9 +105,8 @@ def loaddata(fh,delimiter=None, converters=None):
     return X
 
 def run_debug_tree(device):
-    p = os.popen('btrfs inspect-internal dump-tree -e ' + device)
-    data = loaddata(p)
-    return data
+  p = os.popen(f'btrfs inspect-internal dump-tree -e {device}')
+  return loaddata(p)
 
 def shapeit(X):
     lines = len(X) / 4
@@ -166,35 +162,32 @@ def plotone(a, xvals, yvals, owner, root, lines, labels):
         print "add label %s" % label
 
 def parse_zoom():
-    def parse_num(s):
-        mult = 1
-        c = s.lower()[-1]
-        if c == 't':
-            mult = 1024 * 1024 * 1024 * 1024
-        elif c == 'g':
-            mult = 1024 * 1024 * 1024
-        elif c == 'm':
-            mult = 1024 * 1024
-        elif c == 'k':
-            mult = 1024
-        else:
-            c = None
-        if c:
-            num = int(s[:-1]) * mult
-        else:
-            num = int(s)
-        return num
-        
-    if not options.zoom:
-        return (0, 0)
+  def parse_num(s):
+    mult = 1
+    c = s.lower()[-1]
+    if c == 't':
+        mult = 1024 * 1024 * 1024 * 1024
+    elif c == 'g':
+        mult = 1024 * 1024 * 1024
+    elif c == 'm':
+        mult = 1024 * 1024
+    elif c == 'k':
+        mult = 1024
+    else:
+        c = None
+    num = int(s[:-1]) * mult if c else int(s)
+    return num
 
-    vals = options.zoom.split(':')
-    if len(vals) != 2:
-        sys.stderr.write("warning: unable to parse zoom %s\n" % options.zoom)
-        return (0, 0)
-    zoommin = parse_num(vals[0])
-    zoommax = parse_num(vals[1])
-    return (zoommin, zoommax)
+  if not options.zoom:
+      return (0, 0)
+
+  vals = options.zoom.split(':')
+  if len(vals) != 2:
+      sys.stderr.write("warning: unable to parse zoom %s\n" % options.zoom)
+      return (0, 0)
+  zoommin = parse_num(vals[0])
+  zoommax = parse_num(vals[1])
+  return (zoommin, zoommax)
 
 usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)

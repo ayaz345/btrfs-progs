@@ -44,8 +44,7 @@ def drop_privs():
 
 @contextlib.contextmanager
 def regain_privs():
-    uid = os.geteuid()
-    if uid:
+    if uid := os.geteuid():
         try:
             os.seteuid(0)
             yield
